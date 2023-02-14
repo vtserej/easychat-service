@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using System.Net.Http;
 
 namespace easychat
 {
@@ -22,8 +23,21 @@ namespace easychat
         {
             if (!context.WebSockets.IsWebSocketRequest)
             {
-                await requestDelegate.Invoke(context);
-                return;
+                if (context.Request.Method == HttpMethods.Post && context.Request.HasFormContentType)
+                {
+                    using (var fileStream = File.Create("C:\\OBX\\file.png"))
+                    {
+                        var files = context.Request.Form.Files.First();
+                        files.CopyTo(fileStream);
+                    }
+                }
+
+                else
+                {
+                    await requestDelegate.Invoke(context);
+
+                    return;
+                }
             }
 
             var token = context.RequestAborted;
