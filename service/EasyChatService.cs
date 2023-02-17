@@ -25,16 +25,25 @@ namespace easychat
             {
                 if (context.Request.Method == HttpMethods.Post && context.Request.HasFormContentType)
                 {
-                    using (var fileStream = File.Create("C:\\OBX\\file.png"))
+                    var file = context.Request.Form.Files.First();
+
+                    using (var fileStream = File.Create("C:\\OBX\\" + file.FileName))
                     {
-                        var files = context.Request.Form.Files.First();
-                        files.CopyTo(fileStream);
+                        file.CopyTo(fileStream);
                     }
                 }
 
                 else
                 {
-                    await requestDelegate.Invoke(context);
+                    if (context.Request.Path.StartsWithSegments("//Attachments"))
+                    {
+
+                        await context.Response.SendFileAsync($"C:\\OBX\\{context.Request.Path.Value.Replace("//Attachments//",string.Empty)}");
+                    }
+                    else
+                    {
+                        await requestDelegate.Invoke(context);
+                    }
 
                     return;
                 }
